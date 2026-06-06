@@ -34,9 +34,11 @@ interface PintechState {
   currentRole: Role;
   source: Source;
   ready: boolean;
+  authProfileId: string | null;
   touched: Record<string, number>;
 
   setRole: (role: Role) => void;
+  setAuthProfile: (user: User) => void;
   currentUser: () => User;
 
   hydrate: (data: { projects: Project[]; activity: ActivityUpdate[]; users: User[]; payments: PaymentRequest[] }) => void;
@@ -45,6 +47,7 @@ interface PintechState {
   applyRemoteActivity: (update: ActivityUpdate) => void;
 
   addUser: (u: Omit<User, "id" | "initials"> & { initials?: string }) => void;
+  upsertUserLocal: (user: User) => void;
   updateUser: (id: string, patch: Partial<Pick<User, "name" | "title" | "role" | "email" | "active">>) => void;
   createProject: (project: Project, managerId: string | null) => void;
   requestPayment: (projectId: string, contractorId: string, amount: number, note: string) => void;
@@ -91,13 +94,25 @@ export const usePintech = create<PintechState>((set, get) => ({
   currentRole: "super_admin",
   source: "seed",
   ready: !SUPA,
+  authProfileId: null,
   touched: {},
 
   setRole: (role) => set({ currentRole: role }),
+
+  setAuthProfile: (user) =>
+    set((state) => ({
+      users: state.users.some((u) => u.id === user.id) ? state.users.map((u) => (u.id === user.id ? user : u)) : [...state.users, user],
+      authProfileId: user.id,
+      currentRole: user.role,
+    })),
+
   currentUser: () => {
-    const role = get().currentRole;
-    const users = get().users;
-    return users.find((u) => u.role === role && u.active !== false) ?? users.find((u) => u.role === role) ?? USERS.find((u) => u.role === role) ?? USERS[0];
+    const { authProfileId, users, currentRole } = get();
+    if (authProfileId) {
+      const me = users.find((u) => u.id === authProfileId);
+      if (me) return me;
+    }
+    return users.find((u) => u.role === currentRole && u.active !== false) ?? users.find((u) => u.role === currentRole) ?? USERS.find((u) => u.role === currentRole) ?? USERS[0];
   },
 
   hydrate: ({ projects, activity, users, payments }) => set({ projects, activity, users, payments, source: "supabase", ready: true }),
@@ -199,6 +214,11 @@ export const usePintech = create<PintechState>((set, get) => ({
     set((state) => ({ users: [...state.users, user] }));
     if (get().source === "supabase") void db.addUser(user);
   },
+
+  // Adds a user record to local state without a DB write (used after the
+  // server route has already created the auth account + profile).
+  upsertUserLocal: (user) =>
+    set((state) => ({ users: state.users.some((u) => u.id === user.id) ? state.users.map((u) => (u.id === user.id ? user : u)) : [...state.users, user] })),
 
   updateUser: (id, patch) => {
     const next = patch.name ? { ...patch, initials: initials(patch.name) } : patch;

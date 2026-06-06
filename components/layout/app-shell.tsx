@@ -5,7 +5,7 @@ import { usePathname } from "next/navigation";
 import { HardHat } from "lucide-react";
 import { usePintech } from "@/lib/store";
 import { NAV, ROLE_LABEL } from "@/lib/roles";
-import { RoleSwitcher } from "./role-switcher";
+import { UserMenu } from "./user-menu";
 import { cn } from "@/lib/utils";
 
 const TITLES: { match: string; title: string }[] = [
@@ -26,6 +26,9 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const items = NAV.filter((n) => n.roles.includes(role));
   const title = TITLES.find((t) => pathname.startsWith(t.match))?.title ?? "Pintech ERP";
+
+  // The login route renders without the app chrome.
+  if (pathname === "/login") return <>{children}</>;
 
   return (
     <div className="flex min-h-screen">
@@ -73,7 +76,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       <div className="flex min-h-screen flex-1 flex-col pl-60">
         <header className="sticky top-0 z-30 flex h-16 items-center justify-between border-b border-border bg-canvas/85 px-7 backdrop-blur-md">
           <h1 className="font-display text-[16px] font-bold tracking-tight text-ink">{title}</h1>
-          <RoleSwitcher />
+          <UserMenu />
         </header>
         <main className="flex-1 px-7 py-7">{ready ? children : <LoadingState />}</main>
       </div>
