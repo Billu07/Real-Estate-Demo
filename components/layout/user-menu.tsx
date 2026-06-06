@@ -2,7 +2,8 @@
 
 import * as React from "react";
 import { useRouter } from "next/navigation";
-import { ChevronDown, LogOut } from "lucide-react";
+import Link from "next/link";
+import { ChevronDown, LogOut, Settings } from "lucide-react";
 import { usePintech } from "@/lib/store";
 import { ROLE_LABEL } from "@/lib/roles";
 import { getBrowserSupabase } from "@/lib/supabase/client";
@@ -48,7 +49,10 @@ export function UserMenu() {
               <p className="truncate text-[12px] text-ink-faint">{user.email ?? user.title}</p>
             </div>
           </div>
-          <button onClick={signOut} className="flex w-full items-center gap-2.5 px-3 py-2.5 text-left text-[13.5px] font-medium text-ink-soft transition-colors hover:bg-surface-muted">
+          <Link href="/account" onClick={() => setOpen(false)} className="flex w-full items-center gap-2.5 px-3 py-2.5 text-left text-[13.5px] font-medium text-ink-soft transition-colors hover:bg-surface-muted">
+            <Settings className="h-4 w-4" /> Account settings
+          </Link>
+          <button onClick={signOut} className="flex w-full items-center gap-2.5 border-t border-border px-3 py-2.5 text-left text-[13.5px] font-medium text-ink-soft transition-colors hover:bg-surface-muted">
             <LogOut className="h-4 w-4" /> Sign out
           </button>
         </div>

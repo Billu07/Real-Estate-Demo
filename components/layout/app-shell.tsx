@@ -16,6 +16,7 @@ const TITLES: { match: string; title: string }[] = [
   { match: "/inventory", title: "Inventory" },
   { match: "/payments", title: "Approvals" },
   { match: "/team", title: "Team" },
+  { match: "/account", title: "Account" },
   { match: "/projects/new", title: "New Project" },
   { match: "/projects", title: "Projects" },
 ];
