@@ -1,0 +1,116 @@
+@import "tailwindcss";
+
+/*
+  Pintech ERP — design tokens
+  Light theme. Deep navy as the brand/structural color, teal as the single action accent.
+  Flat surfaces, no gradients. Restrained, industry-standard data UI.
+*/
+@theme {
+  --color-canvas: #f5f7fa;
+  --color-surface: #ffffff;
+  --color-surface-muted: #f0f3f7;
+
+  --color-border: #e3e8ef;
+  --color-border-strong: #cdd5e0;
+
+  /* Navy — structure, headings, primary text */
+  --color-navy-50: #eef2f7;
+  --color-navy-100: #d6dfeb;
+  --color-navy-200: #adbfd6;
+  --color-navy-300: #7e98ba;
+  --color-navy-400: #51719b;
+  --color-navy-500: #355781;
+  --color-navy-600: #284567;
+  --color-navy-700: #1f3650;
+  --color-navy-800: #16283c;
+  --color-navy-900: #0f1d2e;
+
+  /* Teal — the single accent / action color */
+  --color-teal-50: #effcfa;
+  --color-teal-100: #d3f5f0;
+  --color-teal-200: #a9eae3;
+  --color-teal-300: #72d8cf;
+  --color-teal-400: #3dbeb6;
+  --color-teal-500: #199e98;
+  --color-teal-600: #0f807c;
+  --color-teal-700: #116664;
+  --color-teal-800: #135251;
+  --color-teal-900: #134443;
+
+  /* Text */
+  --color-ink: #16283c;
+  --color-ink-soft: #4a5a6e;
+  --color-ink-faint: #7b8a9c;
+
+  /* Status */
+  --color-status-complete: #0f807c;
+  --color-status-progress: #c2870b;
+  --color-status-pending: #94a3b8;
+  --color-status-alert: #c0392b;
+  --color-status-complete-bg: #e6f4f3;
+  --color-status-progress-bg: #fbf1dd;
+  --color-status-pending-bg: #eef1f5;
+  --color-status-alert-bg: #f9e9e7;
+
+  --radius-card: 14px;
+
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  --font-display: var(--font-jakarta), var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+}
+
+* {
+  border-color: var(--color-border);
+}
+
+html,
+body {
+  background-color: var(--color-canvas);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+  font-feature-settings: "cv11", "ss01";
+  letter-spacing: -0.006em;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+/* Display font for headings — distinctive but professional */
+h1, h2, h3, .font-display {
+  font-family: var(--font-display);
+  letter-spacing: -0.02em;
+}
+
+.tabular-nums {
+  font-variant-numeric: tabular-nums;
+}
+
+/* Subtle, consistent focus ring for the whole app */
+:focus-visible {
+  outline: 2px solid var(--color-teal-500);
+  outline-offset: 2px;
+}
+
+/* Thin, unobtrusive scrollbars */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--color-border-strong);
+  border-radius: 999px;
+  border: 3px solid var(--color-canvas);
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-navy-200);
+}
+
+@keyframes pintech-tick {
+  0% {
+    background-color: var(--color-teal-100);
+  }
+  100% {
+    background-color: transparent;
+  }
+}
+.animate-tick {
+  animation: pintech-tick 1.1s ease-out;
+}

@@ -1,0 +1,19 @@
+/node_modules
+/.next
+/out
+/build
+.env
+.env.local
+*.log
+.DS_Store
+
+# Local reference material (not part of the app)
+/*.xlsx
+/Meeting-minutes.txt
+
+# Editor / tooling local config
+.claude/
+dev.log
+
+# TS build cache
+*.tsbuildinfo
