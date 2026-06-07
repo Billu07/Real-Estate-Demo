@@ -27,47 +27,37 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     let active = true;
 
-    // Safety net: never sit on the loading splash forever. If the auth check
-    // hangs (e.g. network/config issue), fall through to the login screen.
+    // Safety net: never sit on the loading splash forever.
     const timeout = setTimeout(() => {
       if (active) setStatus((s) => (s === "loading" ? "guest" : s));
-    }, 6000);
+    }, 8000);
 
     async function loadProfile(email: string | undefined) {
-      if (!email) return false;
+      if (!email) return;
       try {
         const { data } = await sb!.from("app_user").select("id,name,title,role,initials,email,active").eq("email", email).limit(1);
-        const row = data?.[0];
-        if (row && active) {
-          setAuthProfile(mapProfile(row));
-          return true;
-        }
+        if (data?.[0] && active) setAuthProfile(mapProfile(data[0]));
       } catch {
-        // ignore — profile load failure shouldn't block sign-in
+        // profile load failure shouldn't block an authenticated user
       }
-      return false;
     }
 
-    sb.auth
-      .getSession()
-      .then(async ({ data }) => {
-        if (!active) return;
-        if (data.session?.user) {
-          await loadProfile(data.session.user.email);
-          setStatus("authed");
-        } else {
-          setStatus("guest");
-        }
-      })
-      .catch(() => {
-        if (active) setStatus("guest");
-      });
-
-    const { data: sub } = sb.auth.onAuthStateChange(async (_event, session) => {
+    // onAuthStateChange emits an INITIAL_SESSION event on subscribe with the
+    // restored session — this is reliable, unlike getSession() which can hang
+    // on its storage lock after a reload. The callback stays synchronous and
+    // defers async work to avoid auth-lock deadlocks.
+    const { data: sub } = sb.auth.onAuthStateChange((_event, session) => {
       if (!active) return;
-      if (session?.user) {
-        await loadProfile(session.user.email);
-        setStatus("authed");
+      clearTimeout(timeout);
+      if (session?.user?.email) {
+        const email = session.user.email;
+        // Load the profile (role) before marking authed so role-based landing is
+        // correct. This is a PostgREST call — reliable, unlike getSession().
+        // Detached so the auth callback itself stays synchronous.
+        void (async () => {
+          await loadProfile(email);
+          if (active) setStatus("authed");
+        })();
       } else {
         setStatus("guest");
       }
