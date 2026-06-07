@@ -27,26 +27,41 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     let active = true;
 
+    // Safety net: never sit on the loading splash forever. If the auth check
+    // hangs (e.g. network/config issue), fall through to the login screen.
+    const timeout = setTimeout(() => {
+      if (active) setStatus((s) => (s === "loading" ? "guest" : s));
+    }, 6000);
+
     async function loadProfile(email: string | undefined) {
       if (!email) return false;
-      const { data } = await sb!.from("app_user").select("id,name,title,role,initials,email,active").eq("email", email).limit(1);
-      const row = data?.[0];
-      if (row && active) {
-        setAuthProfile(mapProfile(row));
-        return true;
+      try {
+        const { data } = await sb!.from("app_user").select("id,name,title,role,initials,email,active").eq("email", email).limit(1);
+        const row = data?.[0];
+        if (row && active) {
+          setAuthProfile(mapProfile(row));
+          return true;
+        }
+      } catch {
+        // ignore — profile load failure shouldn't block sign-in
       }
       return false;
     }
 
-    sb.auth.getSession().then(async ({ data }) => {
-      if (!active) return;
-      if (data.session?.user) {
-        await loadProfile(data.session.user.email);
-        setStatus("authed");
-      } else {
-        setStatus("guest");
-      }
-    });
+    sb.auth
+      .getSession()
+      .then(async ({ data }) => {
+        if (!active) return;
+        if (data.session?.user) {
+          await loadProfile(data.session.user.email);
+          setStatus("authed");
+        } else {
+          setStatus("guest");
+        }
+      })
+      .catch(() => {
+        if (active) setStatus("guest");
+      });
 
     const { data: sub } = sb.auth.onAuthStateChange(async (_event, session) => {
       if (!active) return;
@@ -60,6 +75,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     return () => {
       active = false;
+      clearTimeout(timeout);
       sub.subscription.unsubscribe();
     };
   }, [setAuthProfile]);
